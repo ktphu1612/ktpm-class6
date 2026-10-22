@@ -1,27 +1,49 @@
-# KTPM - Nhóm App (Appium + Swag Labs)
+# KTPM – Nhóm App (Appium + Swag Labs)
 
-Bài thực hành kiểm thử tự động tuần 4 trên ứng dụng **Swag Labs** (Android),
-dùng **Appium 2 + UiAutomator2**, viết bằng **Python + pytest**.
+Repo bài thực hành kiểm thử tự động trên ứng dụng **Swag Labs** (Android),
+dùng **Appium + UiAutomator2**, viết bằng **Python + pytest**.
 
-- Ứng dụng: Swag Labs, tải `.apk` tại
-  <https://github.com/saucelabs/sample-app-mobile/releases>
-- Tài khoản: `standard_user` / `secret_sauce`
+## Tiến độ
 
-## Cấu trúc kho mã
+| Tuần | Nội dung | Trạng thái |
+|---|---|---|
+| 4 | Cài môi trường và chạy smoke test đầu tiên | Hoàn thành |
+| 5 | 3 test case cho chức năng Đăng nhập | Hoàn thành, 3/3 PASSED |
 
-```
+## 1. Thông tin ứng dụng
+
+- Ứng dụng: **Swag Labs** (Android)
+- Package: `com.swaglabsmobileapp`
+- Activity: `.MainActivity`
+- Tải `.apk` tại: <https://github.com/saucelabs/sample-app-mobile/releases>
+- Tài khoản dùng để kiểm thử:
+
+| Tài khoản | Mật khẩu | Mục đích |
+|---|---|---|
+| `standard_user` | `secret_sauce` | Đăng nhập thành công |
+| `locked_out_user` | `secret_sauce` | Kiểm tra tài khoản bị khoá |
+| `standard_user` | *(để trống)* | Kiểm tra bắt buộc nhập mật khẩu |
+
+## 2. Cấu trúc kho mã
+
+```text
 .
-├─ requirements.txt     # thư viện Python cần cài
+├─ requirements.txt          # thư viện Python cần cài
 ├─ tuan-04/
-│  ├─ test_smoke.py     # bài kiểm thử đầu tiên (1 file duy nhất, tự chạy)
-│  ├─ notes.md          # ghi chú của từng thành viên
-│  └─ anh/              # ảnh chụp màn hình chạy thành công
+│  ├─ test_smoke.py          # smoke test: mở app, kiểm tra ô đăng nhập
+│  ├─ notes.md               # ghi chú tuần 4
+│  └─ anh/                   # ảnh chụp màn hình chạy thành công
+├─ tuan-05/
+│  ├─ test_login.py          # 3 test case Đăng nhập
+│  ├─ testcases.md           # mô tả 3 test case bằng lời
+│  ├─ notes.md               # ghi chú tuần 5 (mỗi thành viên tự viết)
+│  └─ anh/                   # ảnh kết quả chạy 3 test case
 └─ README.md
 ```
 
-## 1. Cài đặt môi trường
+## 3. Cài đặt môi trường
 
-### 1.1. Phần mềm bắt buộc
+### 3.1. Phần mềm bắt buộc
 
 | Phần mềm | Phiên bản | Kiểm tra |
 |---|---|---|
@@ -29,43 +51,61 @@ dùng **Appium 2 + UiAutomator2**, viết bằng **Python + pytest**.
 | JDK | 17 | `java -version` |
 | Android Studio | mới nhất | có `adb` trong `platform-tools` |
 | Python | 3.10 trở lên | `python --version` |
+| Appium | 2 trở lên | `appium --version` |
 
 Thêm biến môi trường (Windows):
 
 - `JAVA_HOME` → thư mục cài JDK 17
-- `ANDROID_HOME` → `%LOCALAPPDATA%\Android\Sdk`
+- `ANDROID_HOME` → `%LOCALAPPDATA%\Android\Sdk` (hoặc đường dẫn SDK thực tế)
 - Thêm vào `PATH`: `%ANDROID_HOME%\platform-tools` và `%ANDROID_HOME%\emulator`
 
-Mở terminal mới rồi kiểm tra: `java -version`, `adb devices`.
+Mở terminal mới rồi kiểm tra:
 
-### 1.2. Tạo máy ảo Android (AVD)
-Lưu ý: Khi cài **SDK Manager** mặc định **Android Studio** sẽ cài 1 máy ảo trên máy bạn, nếu có thể chạy máy ảo đó
-thì không cần thiết cài thêm máy ảo nào khác, đỡ nặng máy
+```powershell
+java -version
+adb devices
+```
+
+### 3.2. Tạo máy ảo Android (AVD)
 
 Android Studio → **Device Manager** → **Create Virtual Device** → chọn Pixel 5
 (hoặc tương tự) → hệ điều hành **API 33+** → Finish → bấm ▶ để khởi động.
 
 Máy yếu có thể dùng điện thoại Android thật: bật **USB debugging**, cắm cáp,
-rồi sau đó dùng lệnh `adb devices` để lấy mã thiết bị.
+rồi dùng `adb devices` để lấy mã thiết bị.
 
-### 1.3. Cài Appium và driver
+> Nên dùng **Cold boot** khi máy ảo chạy chập chờn. Nếu emulator hay treo,
+> thử chạy với GPU phần mềm: `-gpu swiftshader_indirect` và tăng RAM cho AVD.
+
+### 3.3. Cài Appium và driver
 
 ```powershell
 npm install -g appium
 appium driver install uiautomator2
-appium driver list --installed ##phải thấy được uiautomator đã tải
+appium driver list --installed
 ```
 
-### 1.4. Cài ứng dụng Swag Labs
+Kết quả mong đợi: danh sách có `uiautomator2`.
+
+### 3.4. Cài ứng dụng Swag Labs
 
 Tải `Android.SauceLabs.Mobile.Sample.app.2.7.1.apk` từ trang Releases, sau đó:
 
 ```powershell
 adb install -r "đường-dẫn\Android.SauceLabs.Mobile.Sample.app.2.7.1.apk"
 ```
-hoặc kéo thả trực tiếp vào giao diện máy ảo của bạn.
 
-### 1.5. Cài thư viện Python
+Hoặc kéo thả trực tiếp file `.apk` vào giao diện máy ảo.
+
+Kiểm tra app đã cài:
+
+```powershell
+adb shell pm list packages | findstr swaglabs
+```
+
+### 3.5. Cài thư viện Python
+
+Tại thư mục gốc của repo:
 
 ```powershell
 python -m venv .venv
@@ -73,23 +113,66 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-## 2. Chạy bài kiểm thử
+## 4. Cấu hình thiết bị
 
-Mở **một terminal riêng** và chạy Appium server (giữ nguyên terminal này):
+Chạy lệnh sau để lấy tên thiết bị:
+
+```powershell
+adb devices
+```
+
+Ví dụ:
+
+```text
+emulator-5554    device
+```
+
+Mở hai file sau và sửa `DEVICE_NAME` cho đúng với máy của bạn:
+
+- `tuan-04/test_smoke.py`
+- `tuan-05/test_login.py`
+
+```python
+APPIUM_SERVER = "http://127.0.0.1:4723"
+DEVICE_NAME = "emulator-5554"
+```
+
+Nếu dùng điện thoại thật, `DEVICE_NAME` là mã máy hiện trong `adb devices`,
+ví dụ `R58M123ABCD`.
+
+## 5. Chạy bài kiểm thử
+
+### 5.1. Khởi động Appium server
+
+Mở **một terminal riêng** và giữ nguyên terminal này:
 
 ```powershell
 appium
 ```
 
-Terminal khác, tại thư mục gốc của kho mã:
+Nếu Appium báo thiếu driver:
+
+```powershell
+appium driver install uiautomator2
+```
+
+### 5.2. Chạy smoke test tuần 4
+
+Tại thư mục gốc của repo:
 
 ```powershell
 python tuan-04/test_smoke.py
 ```
 
+Hoặc chạy bằng pytest:
+
+```powershell
+pytest tuan-04/test_smoke.py -v
+```
+
 Kết quả mong đợi:
 
-```
+```text
 1. Đang kết nối Appium và mở ứng dụng Swag Labs...
 2. Chờ màn hình đăng nhập hiện ra...
 3. Đã thấy ô nhập tên đăng nhập, kiểm tra...
@@ -97,27 +180,68 @@ KẾT QUẢ: PASSED - ứng dụng mở được và có ô nhập tên đăng n
 4. Đã đóng ứng dụng.
 ```
 
-## 3. Đổi máy / đổi thiết bị
+### 5.3. Chạy 3 test case Đăng nhập tuần 5
 
-Mở `tuan-04/test_smoke.py` và sửa 2 dòng ở đầu file cho đúng với máy của bạn:
-
-```python
-APPIUM_SERVER = "http://127.0.0.1:4723"   # địa chỉ Appium server
-DEVICE_NAME = "emulator-5554"             # lấy từ lệnh: adb devices
+```powershell
+pytest tuan-05/test_login.py -v
 ```
 
-Dùng điện thoại thật thì `DEVICE_NAME` là mã máy hiện trong `adb devices`,
-ví dụ `R58M123ABCD`.
+Kết quả mong đợi:
 
+```text
+tuan-05/test_login.py::test_dang_nhap_dung_vao_duoc_manh_products PASSED
+tuan-05/test_login.py::test_dang_nhap_tai_khoan_bi_khoa           PASSED
+tuan-05/test_login.py::test_dang_nhap_bi_trong_mat_khau           PASSED
 
-## 5. Lỗi thường gặp
+3 passed
+```
+
+Chi tiết 3 test case nằm trong `tuan-05/testcases.md`.
+
+> Nên chạy bằng `pytest` thay vì `python tuan-05/test_login.py`.
+> Khi chạy trực tiếp bằng Python, nếu bài đầu lỗi thì các bài sau sẽ không chạy
+> và không có bảng tổng kết 3 bài.
+
+### 5.4. Chạy toàn bộ bài kiểm thử
+
+```powershell
+pytest -v
+```
+
+Lệnh này chạy cả smoke test tuần 4 và 3 test case tuần 5.
+
+## 6. Nội dung kiểm thử tuần 5
+
+| ID | Test case | Dữ liệu | Kết quả mong đợi | Hàm kiểm thử |
+|---|---|---|---|---|
+| TC-LOGIN-01 | Đăng nhập thành công | `standard_user` / `secret_sauce` | Vào màn hình PRODUCTS | `test_dang_nhap_dung_vao_duoc_manh_products` |
+| TC-LOGIN-02 | Tài khoản bị khoá | `locked_out_user` / `secret_sauce` | Hiện `Sorry, this user has been locked out.` | `test_dang_nhap_tai_khoan_bi_khoa` |
+| TC-LOGIN-03 | Bỏ trống mật khẩu | `standard_user` / *(trống)* | Hiện `Password is required` | `test_dang_nhap_bi_trong_mat_khau` |
+
+Ảnh kết quả chạy nằm trong `tuan-05/anh/`:
+
+- `01_dang_nhap_dung_vao_manh_PRODUCTS.png`
+- `02_tai_khoan_bi_khoa.png`
+- `03_bo_trong_mat_khau.png`
+
+Kết quả đã kiểm chứng: **3/3 PASSED** trên emulator Android.
+
+## 7. Lỗi thường gặp
 
 | Lỗi | Nguyên nhân / cách sửa |
 |---|---|
-| `Connection refused` tới cổng 4723 | Chưa chạy `appium` ở terminal khác |
+| `Connection refused` tới cổng 4723 | Chưa chạy `appium` ở terminal khác, hoặc Appium server đã dừng |
 | `No device found` / `deviceName` sai | Chưa mở máy ảo, hoặc `adb devices` không thấy thiết bị |
+| `Could not find a connected Android device` | Emulator bị tắt/treo giữa chừng; kiểm tra `adb devices`, khởi động lại emulator bằng Cold boot |
+| Emulator treo, đứng hình | Thử Cold boot, dùng GPU phần mềm (`-gpu swiftshader_indirect`), tăng RAM cho AVD; không tắt emulator khi đang chạy test |
 | `App not installed` | Chưa `adb install` file `.apk`, hoặc sai `appPackage` |
 | `UiAutomator2 driver not installed` | Chạy `appium driver install uiautomator2` |
 | `JAVA_HOME is not set` | Cài JDK 17 và đặt biến `JAVA_HOME`, mở lại terminal |
 | `Element not found` quá 60 giây | App chưa load xong, hoặc accessibility id đã đổi → kiểm tra bằng Appium Inspector |
+| `pytest: command not found` | Chưa kích hoạt `.venv` hoặc chưa `pip install -r requirements.txt` |
 
+## 8. Ghi chú
+
+- Ghi chú tuần 4: `tuan-04/notes.md`
+- Ghi chú tuần 5: `tuan-05/notes.md`
+- Khi gặp lỗi, ghi lại lỗi và cách sửa để đưa vào phần ghi chú tuần.
