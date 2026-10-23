@@ -9,6 +9,7 @@ dùng **Appium + UiAutomator2**, viết bằng **Python + pytest**.
 |---|---|---|
 | 4 | Cài môi trường và chạy smoke test đầu tiên | Hoàn thành |
 | 5 | 3 test case cho chức năng Đăng nhập | Hoàn thành, 3/3 PASSED |
+| 6 | Slide trình bày vòng 1: kiểm thử tự động là gì, kiến trúc Appium và demo Đăng nhập | Hoàn thành bộ slide + ghi chú |
 
 ## 1. Thông tin ứng dụng
 
@@ -38,6 +39,10 @@ dùng **Appium + UiAutomator2**, viết bằng **Python + pytest**.
 │  ├─ testcases.md           # mô tả 3 test case bằng lời
 │  ├─ notes.md               # ghi chú tuần 5 (mỗi thành viên tự viết)
 │  └─ anh/                   # ảnh kết quả chạy 3 test case
+├─ tuan-06/
+│  ├─ slides.pdf             # slide trình bày vòng 1 (8 trang)
+│  ├─ slides.html            # bản nguồn để chỉnh sửa và xuất lại PDF
+│  └─ notes.md               # ghi chú tuần 6: phần đọc, góp ý, việc cải thiện
 └─ README.md
 ```
 
@@ -226,7 +231,23 @@ Lệnh này chạy cả smoke test tuần 4 và 3 test case tuần 5.
 
 Kết quả đã kiểm chứng: **3/3 PASSED** trên emulator Android.
 
-## 7. Lỗi thường gặp
+## 7. Nội dung tuần 6 – Trình bày vòng 1
+
+Bộ slide trình bày vòng 1 (tối đa 8 trang) nằm trong `tuan-06/`:
+
+- `slides.pdf` – bản nộp chính: kiểm thử tự động là gì, các cách tiếp cận, sơ đồ kiến trúc Appium do nhóm tự vẽ, giải phẫu một lệnh, demo 3 test case Đăng nhập và bài học.
+- `slides.html` – bản nguồn để chỉnh sửa nội dung.
+- `notes.md` – ghi chú tuần 6: trả lời câu hỏi phần đọc, góp ý nhận được và việc nhóm sẽ cải thiện.
+
+Sau khi sửa `slides.html`, xuất lại PDF bằng Chrome:
+
+```powershell
+& "C:\Program Files\Google\Chrome\Application\chrome.exe" --headless=new --no-pdf-header-footer --virtual-time-budget=8000 --print-to-pdf="$PWD\tuan-06\slides.pdf" "file:///$($PWD.Path.Replace('\','/'))/tuan-06/slides.html"
+```
+
+Hoặc mở `slides.html` bằng Chrome rồi **Ctrl+P → Save as PDF** (khổ ngang, tắt header/footer).
+
+## 8. Lỗi thường gặp
 
 | Lỗi | Nguyên nhân / cách sửa |
 |---|---|
@@ -240,8 +261,10 @@ Kết quả đã kiểm chứng: **3/3 PASSED** trên emulator Android.
 | `Element not found` quá 60 giây | App chưa load xong, hoặc accessibility id đã đổi → kiểm tra bằng Appium Inspector |
 | `pytest: command not found` | Chưa kích hoạt `.venv` hoặc chưa `pip install -r requirements.txt` |
 
-## 8. Ghi chú
+## 9. Ghi chú
 
 - Ghi chú tuần 4: `tuan-04/notes.md`
 - Ghi chú tuần 5: `tuan-05/notes.md`
+- Ghi chú tuần 6: `tuan-06/notes.md`; slide: `tuan-06/slides.pdf`
+- Tuần 7: chức năng 2 của nhóm A1 – sắp xếp sản phẩm (nộp trong `tuan-07/`).
 - Khi gặp lỗi, ghi lại lỗi và cách sửa để đưa vào phần ghi chú tuần.
