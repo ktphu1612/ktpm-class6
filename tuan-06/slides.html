@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Nhóm A1 – Kiểm thử tự động với Appium</title>
+<style>
+  @page { size: 13.333in 7.5in; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: #10243e;
+    background: #dfe5ec;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .slide {
+    position: relative;
+    width: 13.333in;
+    height: 7.5in;
+    overflow: hidden;
+    background: #ffffff;
+    page-break-after: always;
+    break-after: page;
+  }
+  .slide:last-child { page-break-after: auto; break-after: auto; }
+  @media screen {
+    body { padding: 24px 0; }
+    .slide { margin: 0 auto 24px; box-shadow: 0 10px 36px rgba(15, 39, 66, .22); }
+  }
+
+  /* ---------- shared layout ---------- */
+  .top { position: absolute; top: .52in; left: .68in; right: .68in; }
+  .kicker {
+    font-size: 9.5pt; font-weight: 700; letter-spacing: .16em;
+    color: #0e7c86; text-transform: uppercase; margin-bottom: .07in;
+  }
+  h2 { margin: 0; font-size: 27pt; line-height: 1.12; letter-spacing: -.01em; color: #0f2742; }
+  .rule { width: .72in; height: 4px; background: #f2a93b; border-radius: 4px; margin-top: .12in; }
+  .content { position: absolute; top: 1.62in; left: .68in; right: .68in; bottom: .66in; }
+  .content.vcenter { display: flex; flex-direction: column; justify-content: center; }
+  .foot {
+    position: absolute; left: .68in; right: .68in; bottom: .27in;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 8.5pt; color: #7b8a9a; letter-spacing: .04em;
+    border-top: 1px solid #e2e8ef; padding-top: .09in;
+  }
+  .foot b { color: #42566a; font-weight: 600; }
+  .pnum { font-weight: 700; color: #0e7c86; }
+
+  /* ---------- cover ---------- */
+  .cover {
+    background:
+      radial-gradient(900px 600px at 88% 12%, rgba(14, 124, 134, .42), transparent 60%),
+      radial-gradient(700px 500px at 78% 88%, rgba(242, 169, 59, .16), transparent 65%),
+      #0b1f35;
+    color: #fff;
+  }
+  .cover::before {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+    background-size: .45in .45in;
+  }
+  .cover .inner { position: absolute; left: .9in; top: 1.12in; width: 7.6in; z-index: 2; }
+  .cover .badge {
+    display: inline-block; padding: .07in .18in; border: 1px solid rgba(126, 224, 231, .55);
+    border-radius: 999px; color: #a9eef2; font-size: 9.5pt; font-weight: 700;
+    letter-spacing: .14em; text-transform: uppercase; margin-bottom: .3in;
+  }
+  .cover h1 {
+    margin: 0; font-size: 50pt; line-height: 1.03; letter-spacing: -.025em; font-weight: 800;
+  }
+  .cover h1 span { color: #7ee0e7; }
+  .cover .sub {
+    margin-top: .25in; font-size: 17pt; line-height: 1.45; color: #c9d7e4; max-width: 7.1in;
+  }
+  .cover .sub b { color: #fff; font-weight: 600; }
+  .cover .meta {
+    position: absolute; left: .9in; bottom: .75in; z-index: 2;
+    display: flex; gap: .55in; align-items: flex-end;
+  }
+  .cover .meta .label { font-size: 8.5pt; letter-spacing: .14em; color: #7fa3bf; text-transform: uppercase; margin-bottom: .06in; }
+  .cover .meta .value { font-size: 11.5pt; color: #fff; font-weight: 600; }
+  .cover .stack {
+    position: absolute; right: .78in; top: 1.02in; width: 4.25in; height: 5.5in; z-index: 1;
+  }
+  .phone {
+    position: absolute; right: .25in; top: .1in; width: 2.3in; height: 4.75in;
+    border: 10px solid #163b58; border-radius: .38in;
+    background: linear-gradient(160deg, #102b45, #0a1a2b);
+    box-shadow: 0 28px 60px rgba(0,0,0,.4);
+    transform: rotate(5deg);
+  }
+  .phone::before {
+    content: ""; position: absolute; top: -.06in; left: 50%; transform: translateX(-50%);
+    width: .75in; height: .17in; background: #163b58; border-radius: 0 0 .12in .12in;
+  }
+  .phone .screen {
+    position: absolute; inset: .16in; border-radius: .22in; overflow: hidden;
+    background: #f6f8fb;
+  }
+  .phone .bar { height: .38in; background: #0e7c86; }
+  .phone .line { height: .09in; border-radius: 4px; background: #d8e2ec; margin: .18in .2in 0; }
+  .phone .field { height: .38in; border: 1px solid #c5d4e2; border-radius: .07in; margin: .14in .2in 0; background: #fff; }
+  .phone .btn { height: .38in; border-radius: .07in; background: #f2a93b; margin: .2in .2in 0; }
+  .codecard {
+    position: absolute; left: 0; bottom: .15in; width: 3.55in;
+    background: rgba(9, 25, 41, .92); border: 1px solid rgba(126, 224, 231, .28);
+    border-radius: .13in; padding: .18in .2in; box-shadow: 0 18px 40px rgba(0,0,0,.35);
+    transform: rotate(-2deg);
+  }
+  .codecard .dots { display: flex; gap: .07in; margin-bottom: .11in; }
+  .codecard .dots i { width: .09in; height: .09in; border-radius: 50%; background: #33526c; display: block; }
+  .codecard .dots i:first-child { background: #f2a93b; }
+  .codecard code { display: block; font-family: Consolas, "Courier New", monospace; font-size: 8.2pt; line-height: 1.65; color: #cfe3f1; white-space: pre; }
+  .codecard .kw { color: #7ee0e7; }
+  .codecard .st { color: #f6c36e; }
+
+  /* ---------- slide 2 ---------- */
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: .24in; }
+  .card {
+    background: #f6f9fc; border: 1px solid #dfe8f1; border-radius: .13in;
+    padding: .24in .24in .22in; position: relative; overflow: hidden;
+  }
+  .card::before { content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 4px; background: #0e7c86; }
+  .card.warn::before { background: #f2a93b; }
+  .card.dark::before { background: #0f2742; }
+  .card h3 { margin: 0 0 .1in; font-size: 15.5pt; color: #0f2742; }
+  .card p { margin: 0; font-size: 11.5pt; line-height: 1.5; color: #43576b; }
+  .card ul { margin: .08in 0 0; padding-left: .19in; }
+  .card li { font-size: 11.2pt; line-height: 1.45; color: #43576b; margin-bottom: .05in; }
+  .card .big { font-size: 25pt; font-weight: 800; color: #0e7c86; line-height: 1; margin-bottom: .08in; }
+  .card.warn .big { color: #d68a16; }
+
+  .definition {
+    background: #0f2742; color: #fff; border-radius: .14in; padding: .24in .28in;
+    display: flex; align-items: center; gap: .28in;
+  }
+  .definition .mark { font-size: 34pt; line-height: 1; color: #7ee0e7; font-weight: 800; }
+  .definition p { margin: 0; font-size: 13.5pt; line-height: 1.5; color: #dbe7f1; }
+  .definition b { color: #fff; }
+
+  .pyramid { margin-top: .22in; display: grid; grid-template-columns: 2.75in 1fr; gap: .3in; align-items: end; }
+  .pyramid .bars { display: flex; flex-direction: column; align-items: center; gap: .05in; }
+  .pyramid .bar { height: .34in; border-radius: .05in; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 8pt; font-weight: 700; letter-spacing: .03em; white-space: nowrap; }
+  .pyramid .b1 { width: 100%; background: #0e7c86; }
+  .pyramid .b2 { width: 72%; background: #4a9aa5; }
+  .pyramid .b3 { width: 46%; background: #f2a93b; color: #4b3308; }
+  .pyramid .note { font-size: 10.5pt; line-height: 1.45; color: #5a6b7b; align-self: center; }
+  .pyramid .note b { color: #0f2742; }
+
+  /* ---------- slide 3 ---------- */
+  .approach h3 { font-size: 14.5pt; }
+  .approach .tag { font-size: 8.2pt; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #0e7c86; margin-bottom: .08in; }
+  .approach .row { margin-top: .09in; font-size: 10.6pt; line-height: 1.42; color: #43576b; }
+  .approach .row b { color: #0f2742; }
+  .choice {
+    margin-top: .2in; background: #eef8f8; border: 1px solid #b9dfe2; border-left: 5px solid #0e7c86;
+    border-radius: .1in; padding: .16in .22in; display: flex; align-items: center; gap: .2in;
+  }
+  .choice .ic { width: .42in; height: .42in; border-radius: 50%; background: #0e7c86; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15pt; flex: 0 0 auto; }
+  .choice p { margin: 0; font-size: 11.5pt; line-height: 1.45; color: #33505f; }
+  .choice b { color: #0f2742; }
+
+  /* ---------- slide 4 ---------- */
+  .diagramcard {
+    background: #f8fbfd; border: 1px solid #d9e5ef; border-radius: .14in;
+    padding: .14in .18in .1in; height: 4.35in;
+  }
+  .arch { width: 100%; height: 100%; display: block; }
+  .arch text { font-family: "Segoe UI", Arial, sans-serif; }
+  .arch .box { filter: drop-shadow(0 2px 2px rgba(15,39,66,.06)); }
+  .debugrow { display: grid; grid-template-columns: repeat(4, 1fr); gap: .15in; margin-top: .14in; }
+  .debug {
+    background: #fff; border: 1px solid #dde7f0; border-radius: .08in;
+    padding: .09in .12in; font-size: 9.2pt; line-height: 1.35; color: #4a5f73;
+  }
+  .debug b { display: block; color: #0f2742; font-size: 9.6pt; margin-bottom: .02in; }
+  .debug.red { border-left: 3px solid #c0504d; }
+  .debug.amber { border-left: 3px solid #f2a93b; }
+
+  /* ---------- slide 5 ---------- */
+  .two { display: grid; grid-template-columns: 1.03fr .97fr; gap: .32in; }
+  .codepanel { background: #0d2238; border-radius: .13in; padding: .2in .22in; color: #d7e6f2; }
+  .codepanel .head { display: flex; gap: .07in; margin-bottom: .12in; }
+  .codepanel .head i { width: .09in; height: .09in; border-radius: 50%; background: #2d4b66; display: block; }
+  .codepanel .head i:nth-child(1) { background: #f2a93b; }
+  .codepanel .head i:nth-child(2) { background: #7ee0e7; }
+  .codepanel pre { margin: 0; font-family: Consolas, "Courier New", monospace; font-size: 9.6pt; line-height: 1.62; white-space: pre; }
+  .codepanel .ln { color: #5c7b95; }
+  .codepanel .kw { color: #7ee0e7; }
+  .codepanel .st { color: #f6c36e; }
+  .codepanel .cm { color: #7f9cb4; font-style: italic; }
+  .steps { display: flex; flex-direction: column; gap: .09in; }
+  .step { display: flex; gap: .12in; align-items: flex-start; }
+  .step .n {
+    width: .28in; height: .28in; border-radius: 50%; background: #0e7c86; color: #fff;
+    font-size: 9.5pt; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: 0 0 auto;
+  }
+  .step p { margin: .015in 0 0; font-size: 10.7pt; line-height: 1.4; color: #43576b; }
+  .step b { color: #0f2742; }
+  .step code { font-family: Consolas, monospace; font-size: 9.4pt; background: #eef3f7; padding: .01in .04in; border-radius: .03in; color: #0b5b63; }
+
+  /* ---------- slide 6 ---------- */
+  .demo-wrap { display: grid; grid-template-columns: 1.55fr 1fr; gap: .3in; }
+  table { width: 100%; border-collapse: collapse; font-size: 10.6pt; }
+  thead th {
+    background: #0f2742; color: #fff; text-align: left; padding: .1in .12in;
+    font-size: 9.2pt; letter-spacing: .05em; text-transform: uppercase;
+  }
+  thead th:first-child { border-radius: .08in 0 0 0; }
+  thead th:last-child { border-radius: 0 .08in 0 0; }
+  tbody td { padding: .11in .12in; border-bottom: 1px solid #e3eaf1; vertical-align: top; color: #3e5367; line-height: 1.4; }
+  tbody tr:nth-child(even) td { background: #f7fafc; }
+  tbody td:first-child { font-weight: 700; color: #0f2742; white-space: nowrap; }
+  .pass { display: inline-block; background: #e7f6ee; color: #167a4a; font-weight: 700; font-size: 8.5pt; padding: .03in .09in; border-radius: 999px; }
+  .sidepanel { background: #f6f9fc; border: 1px solid #dde7f0; border-radius: .12in; padding: .2in; }
+  .bigpass { display: flex; align-items: baseline; gap: .1in; margin-bottom: .08in; }
+  .bigpass .n { font-size: 36pt; font-weight: 800; color: #0e7c86; line-height: 1; }
+  .bigpass .t { font-size: 11pt; color: #5a6b7b; }
+  .sidepanel .label { font-size: 8.2pt; letter-spacing: .12em; text-transform: uppercase; color: #7b8a9a; font-weight: 700; margin: .12in 0 .06in; }
+  .cmd { background: #0d2238; color: #d7e6f2; border-radius: .07in; padding: .1in .12in; font-family: Consolas, monospace; font-size: 8.8pt; line-height: 1.5; }
+  .chips { display: flex; flex-wrap: wrap; gap: .06in; }
+  .chip { background: #fff; border: 1px solid #cddde9; border-radius: 999px; padding: .03in .1in; font-size: 8.5pt; color: #33505f; font-family: Consolas, monospace; }
+
+  /* ---------- slide 7 ---------- */
+  .result-wrap { display: grid; grid-template-columns: 1.08fr .92fr; gap: .3in; }
+  .shots { display: flex; gap: .13in; align-items: flex-start; justify-content: center; }
+  .shot { text-align: center; }
+  .shot img {
+    height: 3.2in; width: auto; border-radius: .12in; border: 2px solid #d9e5ef;
+    box-shadow: 0 8px 20px rgba(15,39,66,.15); display: block;
+  }
+  .shot .cap { font-size: 8.2pt; color: #5a6b7b; margin-top: .08in; line-height: 1.35; }
+  .lessons { display: flex; flex-direction: column; gap: .11in; }
+  .lesson { display: flex; gap: .12in; align-items: flex-start; }
+  .lesson .n {
+    width: .3in; height: .3in; border-radius: .08in; background: #0f2742; color: #7ee0e7;
+    font-size: 10pt; font-weight: 800; display: flex; align-items: center; justify-content: center; flex: 0 0 auto;
+  }
+  .lesson p { margin: .02in 0 0; font-size: 10.7pt; line-height: 1.4; color: #43576b; }
+  .lesson b { color: #0f2742; }
+  .lesson code { font-family: Consolas, monospace; font-size: 9.4pt; background: #eef3f7; padding: .01in .04in; border-radius: .03in; color: #0b5b63; }
+
+  /* ---------- slide 8 ---------- */
+  .closing { background: #0b1f35; color: #fff; }
+  .closing::before {
+    content: ""; position: absolute; inset: 0;
+    background:
+      radial-gradient(800px 500px at 82% 18%, rgba(14,124,134,.42), transparent 62%),
+      radial-gradient(600px 420px at 20% 92%, rgba(242,169,59,.12), transparent 65%);
+  }
+  .closing .inner { position: absolute; left: .8in; top: .85in; right: .8in; z-index: 2; }
+  .closing h2 { color: #fff; font-size: 33pt; }
+  .closing .lead { color: #b9cad9; font-size: 13pt; margin-top: .1in; }
+  .takeaways { display: grid; grid-template-columns: repeat(3, 1fr); gap: .2in; margin-top: .38in; }
+  .takeaway {
+    background: rgba(255,255,255,.055); border: 1px solid rgba(126,224,231,.22);
+    border-radius: .12in; padding: .2in .2in .18in;
+  }
+  .takeaway .n { font-size: 10pt; font-weight: 800; color: #f2a93b; letter-spacing: .12em; }
+  .takeaway h3 { margin: .07in 0 .06in; font-size: 14pt; color: #fff; }
+  .takeaway p { margin: 0; font-size: 10.2pt; line-height: 1.45; color: #b9cad9; }
+  .next {
+    margin-top: .3in; display: flex; align-items: center; gap: .18in;
+    background: rgba(126,224,231,.08); border-left: 4px solid #7ee0e7;
+    border-radius: .08in; padding: .14in .2in;
+  }
+  .next .tag { font-size: 8.5pt; letter-spacing: .12em; color: #7ee0e7; font-weight: 700; text-transform: uppercase; }
+  .next p { margin: .02in 0 0; font-size: 11.2pt; color: #dbe7f1; }
+  .next b { color: #fff; }
+  .closing .qmark {
+    position: absolute; right: .9in; bottom: .35in; font-size: 150pt; line-height: 1;
+    color: rgba(126,224,231,.1); font-weight: 800; z-index: 1;
+  }
+  .sources { margin-top: .28in; font-size: 8.2pt; line-height: 1.55; color: #7fa3bf; z-index: 2; position: relative; }
+  .sources b { color: #a9c2d6; }
+  .closing .foot { border-top-color: rgba(255,255,255,.14); color: #7fa3bf; }
+  .closing .foot b { color: #c9d7e4; }
+  .closing .pnum { color: #7ee0e7; }
+</style>
+</head>
+<body>
+
+<!-- ================= SLIDE 1 ================= -->
+<section class="slide cover">
+  <div class="inner">
+    <div class="badge">Tuần 6 · Trình bày vòng 1</div>
+    <h1>KIỂM THỬ<br><span>TỰ ĐỘNG</span></h1>
+    <div class="sub">
+      Tổng quan, kiến trúc <b>Appium</b> và demo bộ test <b>Đăng nhập</b><br>
+      trên ứng dụng Android <b>Swag Labs</b>.
+    </div>
+  </div>
+  <div class="meta">
+    <div>
+      <div class="label">Nhóm</div>
+      <div class="value">A1 · KTPM Class 6</div>
+    </div>
+    <div>
+      <div class="label">Công cụ</div>
+      <div class="value">Appium 2 · UiAutomator2 · Python · pytest</div>
+    </div>
+  </div>
+  <div class="stack">
+    <div class="phone">
+      <div class="screen">
+        <div class="bar"></div>
+        <div class="line" style="width: 55%"></div>
+        <div class="field"></div>
+        <div class="field"></div>
+        <div class="btn"></div>
+        <div class="line" style="width: 78%; margin-top: .25in;"></div>
+        <div class="line" style="width: 62%"></div>
+      </div>
+    </div>
+    <div class="codecard">
+      <div class="dots"><i></i><i></i><i></i></div>
+      <code><span class="kw">driver</span> = webdriver.Remote(
+    APPIUM_SERVER, options=options)
+
+<span class="kw">o</span> = WebDriverWait(driver, 30).until(
+    EC.visibility_of_element_located((
+      AppiumBy.ACCESSIBILITY_ID,
+      <span class="st">"test-Username"</span>)))
+
+o.send_keys(<span class="st">"standard_user"</span>)</code>
+    </div>
+  </div>
+  <div class="foot"><span><b>Nhóm A1</b> · KTPM Class 6</span><span class="pnum">01 / 08</span></div>
+</section>
+
+<!-- ================= SLIDE 2 ================= -->
+<section class="slide">
+  <div class="top">
+    <div class="kicker">01 · Khái niệm</div>
+    <h2>Kiểm thử tự động là gì?</h2>
+    <div class="rule"></div>
+  </div>
+  <div class="content">
+    <div class="definition">
+      <div class="mark">“</div>
+      <p>Dùng <b>công cụ và script</b> điều khiển ứng dụng, thực hiện các bước kiểm thử và <b>so sánh kết quả thực tế</b> với kết quả mong đợi — không cần thao tác tay từng lần.</p>
+    </div>
+
+    <div class="grid3" style="margin-top: .24in;">
+      <div class="card">
+        <div class="big">01</div>
+        <h3>Vì sao nên dùng?</h3>
+        <ul>
+          <li>Chạy lặp lại mỗi khi code thay đổi.</li>
+          <li>Kiểm tra hồi quy nhanh, ít bỏ sót.</li>
+          <li>Chạy nhiều thiết bị / môi trường.</li>
+          <li>Phát hiện lỗi sớm, tiết kiệm thời gian.</li>
+        </ul>
+      </div>
+      <div class="card warn">
+        <div class="big">02</div>
+        <h3>Khi nào không nên?</h3>
+        <ul>
+          <li>Giao diện thay đổi liên tục.</li>
+          <li>Dự án ngắn, chỉ chạy một lần.</li>
+          <li>Cần đánh giá cảm quan / thẩm mỹ.</li>
+          <li>Chi phí bảo trì lớn hơn giá trị mang lại.</li>
+        </ul>
+      </div>
+      <div class="card dark">
+        <div class="big">03</div>
+        <h3>Đừng chỉ nhìn UI</h3>
+        <p>Kiểm thử giao diện nên <b>ít và có chọn lọc</b>: ưu tiên các luồng quan trọng nhất. Phần logic nên kiểm tra ở tầng unit / integration.</p>
+      </div>
+    </div>
+
+    <div class="pyramid">
+      <div class="bars">
+        <div class="bar b1">UNIT · nhiều, nhanh</div>
+        <div class="bar b2">INTEGRATION · vừa</div>
+        <div class="bar b3">UI / E2E · ít, chậm</div>
+      </div>
+      <div class="note">
+        <b>Test pyramid:</b> càng lên cao càng chậm, đắt và dễ hỏng — nên dùng cho các luồng người dùng quan trọng, không phải mọi màn hình.
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>Nhóm A1</b> · KTPM Class 6</span><span class="pnum">02 / 08</span></div>
+</section>
+
+<!-- ================= SLIDE 3 ================= -->
+<section class="slide">
+  <div class="top">
+    <div class="kicker">02 · Cách tiếp cận</div>
+    <h2>Ba cách làm phổ biến</h2>
+    <div class="rule"></div>
+  </div>
+  <div class="content vcenter">
+    <div class="grid3 approach">
+      <div class="card">
+        <div class="tag">Record &amp; playback</div>
+        <h3>Ghi và phát lại</h3>
+        <div class="row"><b>Ưu:</b> nhanh, không cần code, dễ bắt đầu.</div>
+        <div class="row"><b>Nhược:</b> dễ vỡ khi UI đổi, khó tái sử dụng, khó chạy CI.</div>
+        <div class="row"><b>Phù hợp:</b> học thử, kiểm tra nhanh một luồng.</div>
+        <div class="row" style="margin-top:.12in; color:#7b8a9a;">Ví dụ: Selenium IDE.</div>
+      </div>
+      <div class="card dark">
+        <div class="tag">Script-based</div>
+        <h3>Viết bằng code</h3>
+        <div class="row"><b>Ưu:</b> kiểm soát hoàn toàn, tái sử dụng, dễ bảo trì, chạy CI.</div>
+        <div class="row"><b>Nhược:</b> cần biết lập trình, tốn thời gian ban đầu.</div>
+        <div class="row"><b>Phù hợp:</b> dự án dài, cần bộ test ổn định.</div>
+        <div class="row" style="margin-top:.12in; color:#7b8a9a;">Ví dụ: Selenium / Appium + pytest.</div>
+      </div>
+      <div class="card warn">
+        <div class="tag">Low-code / no-code</div>
+        <h3>Công cụ trực quan</h3>
+        <div class="row"><b>Ưu:</b> dễ dùng cho người không chuyên, có sẵn dashboard.</div>
+        <div class="row"><b>Nhược:</b> phụ thuộc nhà cung cấp, khó tùy biến sâu.</div>
+        <div class="row"><b>Phù hợp:</b> team nhỏ, nhu cầu đơn giản.</div>
+        <div class="row" style="margin-top:.12in; color:#7b8a9a;">Ví dụ: Katalon, TestProject.</div>
+      </div>
+    </div>
+
+    <div class="choice">
+      <div class="ic">A1</div>
+      <p><b>Nhóm A1 chọn Script-based:</b> Python + pytest + Appium 2. Vì cần hiểu sâu cách hoạt động, dễ tách hàm dùng chung, chạy được toàn bộ bộ test bằng một lệnh và sẵn sàng tích hợp CI ở các tuần sau.</p>
+    </div>
+  </div>
+  <div class="foot"><span><b>Nhóm A1</b> · KTPM Class 6</span><span class="pnum">03 / 08</span></div>
+</section>
+
+<!-- ================= SLIDE 4 ================= -->
+<section class="slide">
+  <div class="top">
+    <div class="kicker">03 · Kiến trúc</div>
+    <h2>Một lệnh Appium đi từ đâu tới đâu?</h2>
+    <div class="rule"></div>
+  </div>
+  <div class="content">
+    <div class="diagramcard">
+      <svg class="arch" viewBox="0 0 1200 390" role="img" aria-label="Sơ đồ kiến trúc Appium">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#0e7c86"/>
+          </marker>
+          <marker id="arrowBack" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#8aa2b7"/>
+          </marker>
+          <filter id="soft" x="-10%" y="-10%" width="120%" height="130%">
+            <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#0f2742" flood-opacity="0.08"/>
+          </filter>
+        </defs>
+
+        <!-- computer boundary -->
+        <rect x="8" y="16" width="830" height="358" rx="18" fill="#f4f9fc" stroke="#b9cddd" stroke-dasharray="7 6"/>
+        <text x="28" y="44" font-size="12" font-weight="700" fill="#0e7c86" letter-spacing="1.5">MÁY TÍNH</text>
+        <text x="108" y="44" font-size="11" fill="#7b8a9a">client + server + driver</text>
+
+        <!-- device boundary -->
+        <rect x="858" y="16" width="334" height="358" rx="18" fill="#fff9ee" stroke="#e7c98a" stroke-dasharray="7 6"/>
+        <text x="878" y="44" font-size="12" font-weight="700" fill="#b87910" letter-spacing="1.5">THIẾT BỊ ANDROID</text>
+
+        <!-- client -->
+        <rect class="box" x="28" y="86" width="150" height="170" rx="12" fill="#ffffff" stroke="#cfdde9" filter="url(#soft)"/>
+        <circle cx="103" cy="115" r="17" fill="#0e7c86"/>
+        <text x="103" y="120" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">1</text>
+        <text x="103" y="151" text-anchor="middle" font-size="15" font-weight="700" fill="#0f2742">Python client</text>
+        <text x="103" y="170" text-anchor="middle" font-size="10" fill="#6a7d8f">pytest + Appium</text>
+        <text x="103" y="185" text-anchor="middle" font-size="10" fill="#6a7d8f">Python Client</text>
+        <text x="103" y="212" text-anchor="middle" font-size="9.5" fill="#0e7c86">sinh lệnh W3C</text>
+        <text x="103" y="226" text-anchor="middle" font-size="9.5" fill="#0e7c86">gửi qua HTTP</text>
+
+        <!-- server -->
+        <rect class="box" x="232" y="86" width="150" height="170" rx="12" fill="#ffffff" stroke="#cfdde9" filter="url(#soft)"/>
+        <circle cx="307" cy="115" r="17" fill="#0e7c86"/>
+        <text x="307" y="120" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">2</text>
+        <text x="307" y="151" text-anchor="middle" font-size="15" font-weight="700" fill="#0f2742">Appium Server</text>
+        <text x="307" y="170" text-anchor="middle" font-size="10" fill="#6a7d8f">Node.js · cổng 4723</text>
+        <text x="307" y="185" text-anchor="middle" font-size="10" fill="#6a7d8f">nhận REST / W3C</text>
+        <text x="307" y="212" text-anchor="middle" font-size="9.5" fill="#0e7c86">chọn driver</text>
+        <text x="307" y="226" text-anchor="middle" font-size="9.5" fill="#0e7c86">theo session</text>
+
+        <!-- driver -->
+        <rect class="box" x="436" y="86" width="155" height="170" rx="12" fill="#ffffff" stroke="#cfdde9" filter="url(#soft)"/>
+        <circle cx="513" cy="115" r="17" fill="#0e7c86"/>
+        <text x="513" y="120" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">3</text>
+        <text x="513" y="151" text-anchor="middle" font-size="14.5" font-weight="700" fill="#0f2742">UiAutomator2</text>
+        <text x="513" y="168" text-anchor="middle" font-size="14.5" font-weight="700" fill="#0f2742">Driver</text>
+        <text x="513" y="188" text-anchor="middle" font-size="10" fill="#6a7d8f">dịch lệnh thành</text>
+        <text x="513" y="203" text-anchor="middle" font-size="10" fill="#6a7d8f">thao tác Android</text>
+        <text x="513" y="226" text-anchor="middle" font-size="9.5" fill="#0e7c86">quản lý session</text>
+
+        <!-- adb -->
+        <rect class="box" x="645" y="86" width="165" height="170" rx="12" fill="#ffffff" stroke="#cfdde9" filter="url(#soft)"/>
+        <circle cx="727" cy="115" r="17" fill="#0e7c86"/>
+        <text x="727" y="120" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">4</text>
+        <text x="727" y="151" text-anchor="middle" font-size="15" font-weight="700" fill="#0f2742">ADB +</text>
+        <text x="727" y="168" text-anchor="middle" font-size="13.5" font-weight="700" fill="#0f2742">instrumentation</text>
+        <text x="727" y="190" text-anchor="middle" font-size="10" fill="#6a7d8f">cầu nối tới thiết bị</text>
+        <text x="727" y="212" text-anchor="middle" font-size="9.5" fill="#0e7c86">gửi lệnh / nhận</text>
+        <text x="727" y="226" text-anchor="middle" font-size="9.5" fill="#0e7c86">cây giao diện</text>
+
+        <!-- device -->
+        <rect class="box" x="884" y="86" width="282" height="220" rx="12" fill="#ffffff" stroke="#e2c17a" filter="url(#soft)"/>
+        <rect x="1018" y="104" width="14" height="4" rx="2" fill="#d8e0e8"/>
+        <text x="1025" y="134" text-anchor="middle" font-size="15" font-weight="700" fill="#0f2742">Android + Swag Labs</text>
+        <text x="1025" y="154" text-anchor="middle" font-size="10" fill="#6a7d8f">emulator-5554 / thiết bị thật</text>
+        <rect x="930" y="176" width="190" height="44" rx="7" fill="#f2f8fb" stroke="#d5e4ee"/>
+        <text x="1025" y="194" text-anchor="middle" font-size="9.5" fill="#3f5a70">UiAutomator2 server</text>
+        <text x="1025" y="209" text-anchor="middle" font-size="9.5" fill="#3f5a70">(instrumentation trên máy)</text>
+        <rect x="930" y="230" width="190" height="44" rx="7" fill="#fff4dd" stroke="#e8cc92"/>
+        <text x="1025" y="248" text-anchor="middle" font-size="9.5" fill="#8a5a0b">Ứng dụng Swag Labs</text>
+        <text x="1025" y="263" text-anchor="middle" font-size="9.5" fill="#8a5a0b">package com.swaglabsmobileapp</text>
+
+        <!-- forward arrows -->
+        <line x1="178" y1="171" x2="228" y2="171" stroke="#0e7c86" stroke-width="2.5" marker-end="url(#arrow)"/>
+        <text x="203" y="162" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0e7c86">HTTP</text>
+
+        <line x1="382" y1="171" x2="432" y2="171" stroke="#0e7c86" stroke-width="2.5" marker-end="url(#arrow)"/>
+        <text x="407" y="162" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0e7c86">route</text>
+
+        <line x1="591" y1="171" x2="641" y2="171" stroke="#0e7c86" stroke-width="2.5" marker-end="url(#arrow)"/>
+        <text x="616" y="162" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0e7c86">ADB</text>
+
+        <line x1="810" y1="171" x2="880" y2="171" stroke="#0e7c86" stroke-width="2.5" marker-end="url(#arrow)"/>
+        <text x="845" y="162" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0e7c86">UI</text>
+
+        <!-- response path -->
+        <path d="M 1000 306 L 1000 338 L 110 338 L 110 260" fill="none" stroke="#8aa2b7" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrowBack)"/>
+        <rect x="392" y="326" width="330" height="24" rx="12" fill="#f4f9fc"/>
+        <text x="557" y="343" text-anchor="middle" font-size="10" fill="#5f7488">kết quả trả về: element id · text · trạng thái</text>
+      </svg>
+    </div>
+
+    <div class="debugrow">
+      <div class="debug red"><b>Connection refused</b>Appium server chưa chạy / sai cổng 4723.</div>
+      <div class="debug amber"><b>device not found</b>Emulator chưa mở hoặc ADB không thấy thiết bị.</div>
+      <div class="debug amber"><b>element not found</b>Sai locator hoặc chưa chờ đủ lâu.</div>
+      <div class="debug red"><b>app not installed</b>Sai package hoặc chưa cài APK.</div>
+    </div>
+  </div>
+  <div class="foot"><span><b>Nhóm A1</b> · KTPM Class 6</span><span class="pnum">04 / 08</span></div>
+</section>
+
+<!-- ================= SLIDE 5 ================= -->
+<section class="slide">
+  <div class="top">
+    <div class="kicker">04 · Giải phẫu một lệnh</div>
+    <h2>Tìm ô đăng nhập: chuyện gì xảy ra?</h2>
+    <div class="rule"></div>
+  </div>
+  <div class="content vcenter">
+    <div class="two">
+      <div class="codepanel">
+        <div class="head"><i></i><i></i><i></i></div>
+        <pre><span class="cm"># 1. Chờ ô Username hiển thị</span>
+o_username = WebDriverWait(driver, 30).until(
+    EC.visibility_of_element_located(
+        (AppiumBy.ACCESSIBILITY_ID,
+         <span class="st">"test-Username"</span>)
+    )
+)
+
+<span class="cm"># 2. Nhập tên đăng nhập</span>
+o_username.clear()
+o_username.send_keys(<span class="st">"standard_user"</span>)
+
+<span class="cm"># 3. Bấm LOGIN</span>
+driver.find_element(
+    AppiumBy.ACCESSIBILITY_ID, <span class="st">"test-LOGIN"</span>
+).click()</pre>
+      </div>
+
+      <div class="steps">
+        <div class="step"><div class="n">1</div><p><b>Client sinh lệnh.</b> <code>find_element</code> biến thành yêu cầu W3C: tìm phần tử theo <code>accessibility id</code>.</p></div>
+        <div class="step"><div class="n">2</div><p><b>HTTP → Appium server.</b> Yêu cầu được gửi tới <code>127.0.0.1:4723</code>, kèm <code>sessionId</code>.</p></div>
+        <div class="step"><div class="n">3</div><p><b>Server chọn driver.</b> Session đang dùng driver <b>UiAutomator2</b>, nên lệnh được chuyển tiếp tới driver này.</p></div>
+        <div class="step"><div class="n">4</div><p><b>Driver gọi ADB / instrumentation.</b> UiAutomator2 đọc cây giao diện Android để tìm phần tử có id <code>test-Username</code>.</p></div>
+        <div class="step"><div class="n">5</div><p><b>Thiết bị trả kết quả.</b> Element id (hoặc lỗi) quay ngược về client; <code>WebDriverWait</code> kiểm tra điều kiện hiển thị.</p></div>
+        <div class="step"><div class="n">6</div><p><b><code>send_keys</code> / <code>click</code>.</b> Một chu trình mới được gửi xuống thiết bị để nhập chữ hoặc bấm nút.</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>Nhóm A1</b> · KTPM Class 6</span><span class="pnum">05 / 08</span></div>
+</section>
+
+<!-- ================= SLIDE 6 ================= -->
+<section class="slide">
+  <div class="top">
+    <div class="kicker">05 · Demo</div>
+    <h2>Ba test case Đăng nhập</h2>
+    <div class="rule"></div>
+  </div>
+  <div class="content vcenter">
+    <div class="demo-wrap">
+      <div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 1.35in;">ID</th>
+              <th style="width: 1.75in;">Dữ liệu</th>
+              <th>Kết quả mong đợi</th>
+              <th style="width: .85in;">Thực tế</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>TC-LOGIN-01</td>
+              <td><code>standard_user</code><br><code>secret_sauce</code></td>
+              <td>Vào được màn hình <b>PRODUCTS</b>.</td>
+              <td><span class="pass">PASSED</span></td>
+            </tr>
+            <tr>
+              <td>TC-LOGIN-02</td>
+              <td><code>locked_out_user</code><br><code>secret_sauce</code></td>
+              <td>Hiện thông báo <b>Sorry, this user has been locked out.</b></td>
+              <td><span class="pass">PASSED</span></td>
+            </tr>
+            <tr>
+              <td>TC-LOGIN-03</td>
+              <td><code>standard_user</code><br><i>(mật khẩu trống)</i></td>
+              <td>Hiện thông báo <b>Password is required</b>.</td>
+              <td><span class="pass">PASSED</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="margin-top: .16in; font-size: 9.8pt; color: #6a7d8f; line-height: 1.45;">
+          Mỗi test mở một session mới; test 1 tự đăng xuất trong <code>finally</code> để trả app về màn Login.
+        </div>
+      </div>
+
+      <div class="sidepanel">
+        <div class="bigpass"><span class="n">3/3</span><span class="t">PASSED<br>khoảng 46 giây</span></div>
+        <div class="label">Chạy toàn bộ</div>
+        <div class="cmd">pytest tuan-05/test_login.py -v</div>
+        <div class="label">Locator dùng trong demo</div>
+        <div class="chips">
+          <span class="chip">test-Username</span>
+          <span class="chip">test-Password</span>
+          <span class="chip">test-LOGIN</span>
+          <span class="chip">test-PRODUCTS</span>
+          <span class="chip">test-Error message</span>
+          <span class="chip">test-Menu</span>
+          <span class="chip">test-LOGOUT</span>
+        </div>
+        <div class="label">Điểm đáng chú ý</div>
+        <div style="font-size: 9.8pt; line-height: 1.45; color: #43576b;">
+          Khung lỗi là <b>ViewGroup</b> nên phải lấy <b>TextView con</b> mới đọc được nội dung.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>Nhóm A1</b> · KTPM Class 6</span><span class="pnum">06 / 08</span></div>
+</section>
+
+<!-- ================= SLIDE 7 ================= -->
+<section class="slide">
+  <div class="top">
+    <div class="kicker">06 · Kết quả &amp; bài học</div>
+    <h2>Chạy thật, nhìn thật, sửa thật</h2>
+    <div class="rule"></div>
+  </div>
+  <div class="content vcenter">
+    <div class="result-wrap">
+      <div>
+        <div class="shots">
+          <div class="shot">
+            <img src="../tuan-05/anh/01_dang_nhap_dung_vao_manh_PRODUCTS.png" alt="Đăng nhập đúng vào màn PRODUCTS">
+            <div class="cap">01 · Đăng nhập đúng<br>vào PRODUCTS</div>
+          </div>
+          <div class="shot">
+            <img src="../tuan-05/anh/02_tai_khoan_bi_khoa.png" alt="Tài khoản bị khoá">
+            <div class="cap">02 · Tài khoản<br>bị khoá</div>
+          </div>
+          <div class="shot">
+            <img src="../tuan-05/anh/03_bo_trong_mat_khau.png" alt="Bỏ trống mật khẩu">
+            <div class="cap">03 · Bỏ trống<br>mật khẩu</div>
+          </div>
+        </div>
+        <div style="text-align:center; margin-top:.14in; font-size:9.2pt; color:#6a7d8f;">
+          Ảnh chụp từ emulator · bộ test <code>tuan-05/test_login.py</code>
+        </div>
+      </div>
+
+      <div class="lessons">
+        <div class="lesson"><div class="n">01</div><p><b>Accessibility id ổn định hơn</b> XPath dài hay tọa độ, vì gắn với phần tử chứ không gắn với vị trí màn hình.</p></div>
+        <div class="lesson"><div class="n">02</div><p><b><code>WebDriverWait</code> thay <code>time.sleep</code>.</b> Chờ đúng điều kiện: hiển thị, bấm được — test nhanh và ít flaky hơn.</p></div>
+        <div class="lesson"><div class="n">03</div><p><b>Đọc đúng cây giao diện.</b> <code>test-Error message</code> là <code>ViewGroup</code>; nội dung nằm trong <code>TextView</code> con.</p></div>
+        <div class="lesson"><div class="n">04</div><p><b>Phân biệt lỗi môi trường và lỗi test.</b> Server, emulator, ADB, APK — kiểm tra trước khi sửa locator.</p></div>
+        <div class="lesson"><div class="n">05</div><p><b>Dọn trạng thái trước mỗi test.</b> Đăng xuất / reset app để bài sau không phụ thuộc bài trước.</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>Nhóm A1</b> · KTPM Class 6</span><span class="pnum">07 / 08</span></div>
+</section>
+
+<!-- ================= SLIDE 8 ================= -->
+<section class="slide closing">
+  <div class="inner">
+    <div class="kicker" style="color:#7ee0e7;">07 · Tổng kết</div>
+    <h2>Hiểu kiến trúc trước, viết test sau</h2>
+    <div class="lead">Ba điều nhóm A1 mang theo sang tuần 7.</div>
+
+    <div class="takeaways">
+      <div class="takeaway">
+        <div class="n">01</div>
+        <h3>Biết lỗi ở tầng nào</h3>
+        <p>Client → server → driver → ADB → thiết bị. Mỗi tầng có một kiểu lỗi riêng.</p>
+      </div>
+      <div class="takeaway">
+        <div class="n">02</div>
+        <h3>Chọn locator ổn định</h3>
+        <p>Ưu tiên accessibility id; không phụ thuộc tọa độ hay XPath tuyệt đối.</p>
+      </div>
+      <div class="takeaway">
+        <div class="n">03</div>
+        <h3>Chờ đúng điều kiện</h3>
+        <p>Dùng WebDriverWait với điều kiện rõ ràng; không dùng sleep mò.</p>
+      </div>
+    </div>
+
+    <div class="next">
+      <div>
+        <div class="tag">Tuần 7 · Chức năng 2</div>
+        <p><b>Sắp xếp sản phẩm trên Swag Labs</b> — chọn “Price low to high”, kiểm tra sản phẩm đầu tiên là rẻ nhất; thêm trường hợp sai và thí nghiệm không dùng wait.</p>
+      </div>
+    </div>
+
+    <div class="sources">
+      <b>Nguồn tham khảo:</b> Appium Documentation (Introduction, UiAutomator2 Driver) · Selenium Documentation (WebDriver, Components) · pytest Documentation (Get started, Assertions) · Martin Fowler – The Practical Test Pyramid.
+    </div>
+  </div>
+  <div class="qmark">?</div>
+  <div class="foot"><span><b>Nhóm A1</b> · KTPM Class 6</span><span class="pnum">08 / 08</span></div>
+</section>
+
+</body>
+</html>
