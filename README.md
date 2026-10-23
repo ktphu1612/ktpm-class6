@@ -40,8 +40,7 @@ dùng **Appium + UiAutomator2**, viết bằng **Python + pytest**.
 │  ├─ notes.md               # ghi chú tuần 5 (mỗi thành viên tự viết)
 │  └─ anh/                   # ảnh kết quả chạy 3 test case
 ├─ tuan-06/
-│  ├─ slides.pdf             # slide trình bày vòng 1 (8 trang)
-│  ├─ slides.html            # bản nguồn để chỉnh sửa và xuất lại PDF
+│  ├─ slides.pptx             # slide trình bày vòng 1 (8 trang)
 │  └─ notes.md               # ghi chú tuần 6: phần đọc, góp ý, việc cải thiện
 └─ README.md
 ```
