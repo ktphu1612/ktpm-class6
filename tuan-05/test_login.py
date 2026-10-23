@@ -19,8 +19,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 # Địa chỉ Appium server đang chạy trên máy
 APPIUM_SERVER = "http://127.0.0.1:4723"
 
-# UDID thiết bị thật Android 15
-DEVICE_NAME = "GYTGVC7D9PHI49CA"
+# UDID thiết bị
+DEVICE_NAME = "emulator-5554"
 
 # Thông tin tài khoản trong ứng dụng Swag Labs
 TEN_DANG_NHAP = "standard_user"
